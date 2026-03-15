@@ -6,150 +6,188 @@ import datetime
 from PIL import Image
 from io import BytesIO
 
-# --- HỆ THỐNG LƯU TRỮ NỘI BỘ ---
+# --- HỆ THỐNG LƯU TRỮ ---
 HISTORY_DIR = "kol_studio_history"
 if not os.path.exists(HISTORY_DIR):
     os.makedirs(HISTORY_DIR)
 
-# --- CẤU HÌNH GIAO DIỆN ---
-st.set_page_config(page_title="AI KOL Studio Pro", page_icon="💎", layout="wide")
+# --- CẤU HÌNH TRANG ---
+st.set_page_config(
+    page_title="AI KOL Studio Pro",
+    page_icon="📸",
+    layout="wide"
+)
 
+# --- GIAO DIỆN CSS: XANH & TRẮNG SIÊU RÕ NÉT ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #0a0a0c; color: white; }
-    .stApp { background-color: #0a0a0c; }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
     
-    /* Tiêu đề Gradient */
-    .main-title {
-        text-align: center; font-weight: 800; font-size: 3rem;
-        background: linear-gradient(90deg, #6366f1, #ec4899);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom: 5px;
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #F8FAFC !important;
+        color: #1A202E;
     }
-    
-    /* Nút bấm Luxury */
-    div.stButton > button {
-        width: 100%; border-radius: 12px; height: 55px;
-        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-        color: white; font-weight: bold; border: none; font-size: 18px;
-        transition: 0.3s; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-    }
-    div.stButton > button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6); }
 
-    /* Card kết quả */
-    .result-card { border: 1px solid #222; border-radius: 20px; padding: 15px; background: #111; }
-    
-    /* Mobile Responsive */
-    @media (max-width: 768px) { .main-title { font-size: 2rem; } }
+    /* Tiêu đề Header */
+    .main-header {
+        text-align: center;
+        padding: 20px;
+        background: #FFFFFF;
+        border-bottom: 5px solid #2563EB;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+    .main-header h1 {
+        color: #1E3A8A;
+        font-weight: 800;
+        font-size: 2.2rem;
+        margin: 0;
+    }
+
+    /* Khu vực nhập API Token nổi bật ở giữa */
+    .api-box {
+        background-color: #EBF3FF !important;
+        border: 2px solid #2563EB !important;
+        border-radius: 15px !important;
+        padding: 20px !important;
+        margin-bottom: 30px !important;
+        text-align: center;
+    }
+
+    /* Khung trắng Card */
+    .st-emotion-cache-1r6slb0, .st-emotion-cache-v0683z {
+        background-color: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 20px !important;
+        padding: 20px !important;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.04) !important;
+    }
+
+    /* Nút bấm Xanh to rõ */
+    div.stButton > button {
+        width: 100%;
+        border-radius: 12px;
+        height: 60px;
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+        color: white !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+        border: none !important;
+    }
+
+    label {
+        font-weight: 700 !important;
+        color: #1E40AF !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR: CẤU HÌNH ---
-with st.sidebar:
-    st.header("⚙️ Cài đặt AI")
-    api_token = st.text_input("Replicate API Token", type="password", help="Lấy tại replicate.com/account")
-    if api_token:
-        os.environ["REPLICATE_API_TOKEN"] = api_token
-    
-    st.divider()
-    st.subheader("🛠 Hậu kỳ (98% Real)")
-    face_restore = st.checkbox("Tăng nét gương mặt", value=True)
-    skin_smooth = st.checkbox("Làm mịn da Studio", value=True)
-    film_color = st.selectbox("Màu Film chuyên nghiệp", ["None", "Kodak Portra 400", "Fujifilm 400H", "Cinematic Teal"])
-    
-    if st.button("🗑 Xóa sạch lịch sử"):
-        for f in os.listdir(HISTORY_DIR): os.remove(os.path.join(HISTORY_DIR, f))
-        st.rerun()
+# --- 1. HEADER ---
+st.markdown("""
+    <div class="main-header">
+        <h1>📸 AI KOL STUDIO PRO</h1>
+        <p style="color:#3B82F6; font-weight:600;">Hệ thống tạo ảnh Blue-White Luxury</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# --- GIAO DIỆN CHÍNH ---
-st.markdown('<h1 class="main-title">AI KOL STUDIO PRO</h1>', unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#888;'>Giữ 98% gương mặt gốc • Chất lượng 4K • Xử lý nội bộ</p>", unsafe_allow_html=True)
+# --- 2. KHU VỰC NHẬP API TOKEN (NGAY TRÊN CÙNG - KHÔNG THỂ BỎ LỠ) ---
+st.markdown("### 🔑 BƯỚC 0: KÍCH HOẠT HỆ THỐNG AI")
+with st.container():
+    # Kiểm tra xem đã có token trong cấu hình chưa
+    default_token = st.secrets.get("REPLICATE_API_TOKEN", "")
+    
+    # Ô NHẬP TOKEN CHÍNH
+    input_token = st.text_input(
+        "Dán mã Replicate API Token của bạn vào đây để bắt đầu:", 
+        value=default_token, 
+        type="password", 
+        placeholder="Mã bắt đầu bằng r8_..."
+    )
 
-tab1, tab2 = st.tabs(["🚀 TẠO ẢNH MỚI", "📚 THƯ VIỆN NỘI BỘ"])
+    if input_token:
+        os.environ["REPLICATE_API_TOKEN"] = input_token
+        st.success("✅ HỆ THỐNG ĐÃ SẴN SÀNG! HÃY TẢI ẢNH VÀ TẠO NGAY BÊN DƯỚI.")
+    else:
+        st.error("❌ BẠN PHẢI NHẬP MÃ TOKEN Ở TRÊN THÌ AI MỚI CHẠY ĐƯỢC!")
+
+st.divider()
+
+# --- 3. NỘI DUNG CHÍNH ---
+tab1, tab2 = st.tabs(["✨ TẠO ẢNH MỚI", "📚 THƯ VIỆN ẢNH"])
 
 with tab1:
-    col_in, col_out = st.columns([1, 1], gap="large")
-    
-    with col_in:
-        st.write("### 📥 1. Tải lên chân dung")
-        src_img = st.file_uploader("Chọn ảnh rõ mặt (Rõ con ngươi là tốt nhất)", type=["jpg", "png", "jpeg"])
-        
-        prompt = st.text_area("2. Bối cảnh & Trang phục", 
-                             "A high-end KOL standing in a luxury modern villa, wearing a premium suit, cinematic lighting, 8k resolution, photorealistic", height=120)
-        
-        ratio = st.radio("3. Tỷ lệ ảnh", ["3:4 (Portrait)", "1:1 (Square)", "9:16 (Story)"], horizontal=True)
-        
-        btn_generate = st.button("🔥 BẮT ĐẦU TẠO ẢNH NGAI")
+    col_left, col_right = st.columns([1, 1], gap="large")
 
-    with col_out:
-        st.write("### 🖼️ Kết quả AI")
-        if btn_generate:
-            if not api_token:
-                st.error("Bạn chưa nhập API Token ở menu bên trái!")
-            elif not src_img:
-                st.warning("Vui lòng tải ảnh gương mặt lên!")
+    with col_left:
+        st.markdown("### 🟦 1. TẢI ẢNH GỐC")
+        src_file = st.file_uploader("Chọn ảnh rõ mặt nhân vật", type=["jpg", "png", "jpeg"])
+        
+        st.markdown("### 🟦 2. NHẬP MÔ TẢ")
+        prompt = st.text_area("Bạn muốn KOL xuất hiện ở đâu?", 
+                             "A professional KOL standing in a luxury modern office, wearing a premium suit, cinematic lighting, 8k", 
+                             height=100)
+        
+        ratio = st.selectbox("Tỷ lệ khung hình:", ["3:4 (Portrait)", "1:1 (Square)", "9:16 (Story)"])
+        
+        # Thêm các tùy chọn nhỏ
+        c1, c2 = st.columns(2)
+        with c1: skin = st.checkbox("Làm mịn da", value=True)
+        with c2: face = st.checkbox("Tăng nét mặt", value=True)
+        
+        btn_gen = st.button("🚀 BẮT ĐẦU TẠO ẢNH")
+
+    with col_right:
+        st.markdown("### 🟦 3. KẾT QUẢ")
+        if btn_gen:
+            if not input_token:
+                st.error("❌ Bạn chưa nhập Token ở Bước 0 (Phía trên cùng)!")
+            elif not src_file:
+                st.warning("⚠️ Vui lòng chọn ảnh gốc!")
             else:
-                with st.status("🛠 Đang thực hiện quy trình Gold...", expanded=True) as status:
+                with st.status("💎 AI đang xử lý...", expanded=True) as status:
                     try:
-                        # Bước 1: Tạo bối cảnh bằng Flux
-                        status.write("⏳ Bước 1: Dựng bối cảnh 4K & Body...")
+                        status.write("⏳ Đang dựng bối cảnh...")
                         r_map = {"3:4 (Portrait)": "3:4", "1:1 (Square)": "1:1", "9:16 (Story)": "9:16"}
-                        f_prompt = f"{prompt}, {film_color} color style" if film_color != "None" else prompt
+                        base = replicate.run("black-forest-labs/flux-schnell", input={"prompt": prompt, "aspect_ratio": r_map[ratio]})
                         
-                        base_res = replicate.run(
-                            "black-forest-labs/flux-schnell",
-                            input={"prompt": f_prompt, "aspect_ratio": r_map[ratio]}
-                        )
-                        base_url = base_res[0]
+                        status.write("🎯 Đang ghép mặt Identity 98%...")
+                        swap = replicate.run("lucataco/faceswap:9a429103ed57553f02f30411ad914c090336da90df113e64ca98282f1d079b50",
+                                            input={"target_image": base[0], "source_image": src_file})
 
-                        # Bước 2: Ghép mặt Identity 98%
-                        status.write("🎯 Bước 2: Đồng bộ gương mặt (98% Similarity)...")
-                        swap_res = replicate.run(
-                            "lucataco/faceswap:9a429103ed57553f02f30411ad914c090336da90df113e64ca98282f1d079b50",
-                            input={"target_image": base_url, "source_image": src_img}
-                        )
+                        final_url = swap
+                        if skin or face:
+                            status.write("✨ Đang làm đẹp hậu kỳ...")
+                            final_url = replicate.run("tencentarc/gfpgan:9283608cc6b7c9cc2b527d6563da08ad9510595730335f65bc50c4abc3c79119",
+                                                     input={"img": swap, "upscale": 2})
 
-                        # Bước 3: Hậu kỳ (GFPGAN)
-                        final_url = swap_res
-                        if face_restore or skin_smooth:
-                            status.write("✨ Bước 3: Làm mịn da & Nâng cấp 4K...")
-                            final_url = replicate.run(
-                                "tencentarc/gfpgan:9283608cc6b7c9cc2b527d6563da08ad9510595730335f65bc50c4abc3c79119",
-                                input={"img": swap_res, "upscale": 2}
-                            )
-
-                        status.update(label="✅ Hoàn tất!", state="complete")
+                        status.update(label="✅ ĐÃ XONG!", state="complete")
                         st.image(final_url, use_container_width=True)
                         
-                        # Lưu vào lịch sử nội bộ
-                        img_data = requests.get(final_url).content
-                        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        with open(os.path.join(HISTORY_DIR, f"KOL_{ts}.png"), "wb") as f:
-                            f.write(img_data)
+                        res_data = requests.get(final_url).content
+                        st.download_button("📥 TẢI ẢNH 4K", res_data, file_name="kol_ai.png", mime="image/png")
                         
-                        st.download_button("📥 TẢI ẢNH 4K VỀ MÁY", img_data, file_name=f"KOL_{ts}.png", mime="image/png")
-                        
+                        # Lưu lịch sử
+                        ts = datetime.datetime.now().strftime("%H%M%S")
+                        with open(os.path.join(HISTORY_DIR, f"KOL_{ts}.png"), "wb") as f: f.write(res_data)
+
                     except Exception as e:
-                        st.error(f"Lỗi AI: {str(e)}")
+                        st.error(f"Lỗi: {e}")
         else:
-            st.info("Ảnh sẽ xuất hiện tại đây sau khi bạn nhấn nút tạo.")
+            st.info("Ảnh sẽ hiện ở đây sau khi bạn nhập mã Token và bấm nút Tạo.")
 
 with tab2:
-    st.write("### 📚 Ảnh đã tạo trên máy tính này")
+    st.markdown("### 📚 THƯ VIỆN CỦA TÔI")
     files = [f for f in os.listdir(HISTORY_DIR) if f.endswith(".png")]
     files.sort(reverse=True)
-    
-    if not files:
-        st.info("Chưa có ảnh nào được tạo.")
+    if not files: st.info("Chưa có ảnh nào.")
     else:
         grid = st.columns(4)
-        for idx, f in enumerate(files):
-            with grid[idx % 4]:
+        for i, f in enumerate(files):
+            with grid[i % 4]:
                 p = os.path.join(HISTORY_DIR, f)
                 st.image(p, use_container_width=True)
-                with open(p, "rb") as file_data:
-                    st.download_button("Tải", file_data.read(), file_name=f, key=f"btn_{idx}")
+                with open(p, "rb") as fd: st.download_button("Tải", fd.read(), file_name=f, key=f"dl_{i}")
 
-st.markdown("---")
-st.caption("AI KOL Studio Ultra Pro Gold - Chạy nội bộ ổn định")
+st.markdown("<br><hr><p style='text-align:center; color:#94A3B8;'>AI KOL Studio Pro Gold Edition</p>", unsafe_allow_html=True)
